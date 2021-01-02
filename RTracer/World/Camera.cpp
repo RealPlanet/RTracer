@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(Point3D lookfrom, Point3D lookat, Vector3D vup, double vertical_fov, double aspect_ratio, double aperture, double focus_dist)
+Camera::Camera(Point3D lookfrom, Point3D lookat, Vector3D vup, double vertical_fov, double aspect_ratio, double aperture, double focus_dist, double _time0, double _time1)
 {
 	double theta = degrees_to_radians(vertical_fov);
 	double height = tan(theta / 2);
@@ -18,12 +18,13 @@ Camera::Camera(Point3D lookfrom, Point3D lookat, Vector3D vup, double vertical_f
     lower_left_corner = origin - horizontal / 2 - vertical / 2 - focus_dist * w;
 
     lens_radius = aperture / 2;
+    time0 = _time0;
+    time1 = _time1;
 }
 
 Ray Camera::get_ray(double s, double t) const
 {
 	Vector3D rd = lens_radius * random_in_unit_disk();
 	Vector3D offset = u * rd.x() + v * rd.y();
-
-	return Ray( origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset );
+	return Ray( origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset, random_double(time0, time1));
 }

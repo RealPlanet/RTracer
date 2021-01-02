@@ -1,9 +1,10 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef VMATH_H
+#define VMATH_H
 
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <cstdlib>
 
 // Usings
 using std::shared_ptr;
@@ -39,6 +40,14 @@ inline double random_double(double min, double max)
     return min + (max - min) * random_double();
 }
 
+inline int random_int(int min, int max)
+{
+    // Returns a random integer in [min,max].
+    max++;
+    return static_cast<int>(random_double(min, max));
+}
 
+// Common Headers
+#include "Vector3D.h"
 
 #endif

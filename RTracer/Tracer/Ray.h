@@ -1,42 +1,28 @@
 #ifndef RAY_H
 #define RAY_H
 
-#include <cstdlib>
 #include "Vector3D.h"
-#include "VMath.h"
 
-class Material;
 class Ray
 {
 public:
+	
 	Ray() {}
-	Ray(const Point3D& point, const Vector3D& vec) : _origin{ point }, _direction{ vec }{}
+	Ray(const Point3D& _origin, const Vector3D& _direction, double _time = 0.0f) : m_origin{ _origin }, m_direction{ _direction }, m_time{ _time }
+	{}
 
-	Point3D origin() const { return _origin; }
-	Vector3D direction() const { return _direction; }
+	Point3D origin() const { return m_origin; }
+	Vector3D direction() const { return m_direction; }
+	double time() const { return m_time; }
 
 	Point3D at(double t) const
 	{
-		return _origin + t * _direction;
+		return m_origin + t * m_direction;
 	}
 
-	Point3D _origin;
-	Vector3D _direction;
-};
-
-struct HitInfo
-{
-	Point3D point = {};
-	Vector3D normal = {};
-	shared_ptr<Material> mat_ptr;
-	double t = 0.0f;
-	bool front_face = false;
-
-	inline void set_face_normal(const Ray& r, const Point3D& outward_normal)
-	{
-		front_face = dot(r.direction(), outward_normal) < 0;
-		normal = front_face ? outward_normal : -outward_normal;
-	}
+	Point3D m_origin;
+	Vector3D m_direction;
+	double m_time = 0.0f;
 };
 
 #endif // !RAY_H

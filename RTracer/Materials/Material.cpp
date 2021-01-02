@@ -1,4 +1,26 @@
-#include "Dielectric.h"
+#include "Material.h"
+
+bool Lambertian::scatter(const Ray& r_in, const HitInfo& rec, Color& attenuation, Ray& scattered) const
+{
+    auto scatter_direction = rec.normal + random_unit_vector();
+    attenuation = m_albedo;
+    // Catch degenerate scatter direction
+    if (scatter_direction.near_zero())
+    {
+        scatter_direction = rec.normal;
+    }
+    scattered = Ray(rec.point, scatter_direction, r_in.time());
+    attenuation = albedo->value(rec.u, rec.v, rec.point);
+    return true;
+}
+
+bool Metal::scatter(const Ray& r_in, const HitInfo& rec, Color& attenuation, Ray& scattered) const
+{
+    Vector3D reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+    scattered = Ray(rec.point, reflected + fuzz * random_in_unit_sphere(), r_in.time());
+    attenuation = m_albedo;
+    return (dot(scattered.direction(), rec.normal) > 0);
+}
 
 bool Dielectric::scatter(const Ray& r_in, const HitInfo& rec, Color& attenuation, Ray& scattered) const
 {
@@ -18,8 +40,7 @@ bool Dielectric::scatter(const Ray& r_in, const HitInfo& rec, Color& attenuation
     else
         direction = refract(unit_direction, rec.normal, refraction_ratio);
 
-    scattered = Ray(rec.point, direction);
-
+    scattered = Ray(rec.point, direction, r_in.time());
     return true;
 }
 
