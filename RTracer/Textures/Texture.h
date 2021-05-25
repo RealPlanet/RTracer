@@ -18,7 +18,7 @@ public:
     SolidColor(Color c) : color_value(c) {}
     SolidColor(double red, double green, double blue) : SolidColor(Color(red, green, blue)) {}
 
-    virtual Color value(double u, double v, const Vector3D& p) const override { return color_value; }
+    virtual Color value(double u, double v, const Vector3& p) const override { return color_value; }
 
 private:
     Color color_value;
@@ -32,7 +32,7 @@ public:
 
     CheckerTexture(Color c1, Color c2) : even(make_shared<SolidColor>(c1)), odd(make_shared<SolidColor>(c2)) {}
 
-    virtual Color value(double u, double v, const Point3D& p) const override {
+    virtual Color value(double u, double v, const Point3& p) const override {
         auto sines = sin(10 * p.x()) * sin(10 * p.y()) * sin(10 * p.z());
         if (sines < 0)
             return odd->value(u, v, p);
@@ -50,7 +50,7 @@ public:
     NoiseTexture() : scale{ 1 } {}
     NoiseTexture(double sc) : scale{ sc } {}
 
-    virtual Color value(double u, double v, const Point3D& p) const override {
+    virtual Color value(double u, double v, const Point3& p) const override {
         return Color(1, 1, 1) * 0.5 * (1 + sin(scale * p.z() + 10 * noise.turb(p)));
     }
     Perlin noise;
@@ -68,7 +68,7 @@ public:
 
     ~ImageTexture() { delete data; }
 
-    virtual Color value(double u, double v, const Vector3D& p) const override;
+    virtual Color value(double u, double v, const Vector3& p) const override;
 
 private:
     unsigned char* data;

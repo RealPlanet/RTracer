@@ -7,7 +7,6 @@
 #include "Box.h"
 #include "BVHNode.h"
 #include "Camera.h"
-#include "ImageOutput.h"
 #include "ConstantMedium.h"
 #include "HittableList.h"
 #include "Material.h"
@@ -24,45 +23,80 @@
 #include "Scenes/CornellBoxScene.h"
 #include "Scenes/SimpleLightScene.h"
 #include "Scenes/EarthScene.h"
+#include "CosinePDF.h"
+#include <HittablePDF.h>
+#include <MixturePDF.h>
 
 using namespace std;
 
-Color ray_color(const Ray& r, const Color& background, const HittableList& world, int depth)
+Color ray_color( const Ray& r, const Color& background, const Hittable& world, shared_ptr<HittableList>& lights, int depth )
 {
+    HitInfo rec;
     if (depth <= 0)
     {
         return Color(0, 0, 0);
     }
+	// If the ray hits nothing, return the background color.
+	if (!world.hit(r, 0.001, infinity, rec))
+	{
+		return background;
+	}
 
-    HitInfo rec;
+	ScatterInfo srec;
+	Color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.point);
+	if (!rec.mat_ptr->scatter(r, rec, srec))
+		return emitted;
 
-    // If the ray hits nothing, return the background color.
-    if (!world.hit(r, 0.001, infinity, rec))
+	if (srec.is_specular)
     {
-        return background;
-    }
-      
-    Ray scattered;
-    Color attenuation;
-    Color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.point);
+		return srec.attenuation	* ray_color(srec.specular_ray, background, world, lights, depth - 1);
+	}
 
-    if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-    {
-        return emitted;
-    }
-        
-    return emitted + attenuation * ray_color(scattered, background, world, depth - 1);
+	auto light_ptr = make_shared<HittablePDF>(lights, rec.point);
+	MixturePDF p(light_ptr, srec.pdf_ptr);
+
+	Ray scattered = Ray(rec.point, p.generate(), r.time());
+	auto pdf_val = p.value(scattered.direction());
+
+	return emitted
+		+ srec.attenuation * rec.mat_ptr->scattering_pdf(r, rec, scattered)
+		* ray_color(scattered, background, world, lights, depth - 1) / pdf_val;
+
+}
+
+void write_color(Color pixel_color, int samples_per_pixel, std::ostream& out)
+{
+	double red = pixel_color.x();
+	double green = pixel_color.y();
+	double blu = pixel_color.z();
+
+	// Replace NaN components with zero. See explanation in Ray Tracing: The Rest of Your Life.
+	if (red != red) red = 0.0;
+	if (green != green) green = 0.0;
+	if (blu != blu) blu = 0.0;
+
+	// Divide the color by the number of samples and gamma-correct for gamma=2.0.
+	double scale = 1.0 / samples_per_pixel;
+	red = sqrt(scale * red);
+	green = sqrt(scale * green);
+	blu = sqrt(scale * blu);
+
+	// Write the translated [0,255] value of each color component.
+	int f_red = static_cast<int>(256 * clamp(red, 0.0, 0.999));
+	int f_green = static_cast<int>(256 * clamp(green, 0.0, 0.999));
+	int f_blue = static_cast<int>(256 * clamp(blu, 0.0, 0.999));
+	out << f_red << ' ' << f_green << ' ' << f_blue << '\n';
 }
 
 int main() {
 
     // Image
-    const int max_depth = 10;
     double aspect_ratio = 16.0 / 9.0;
     int image_width = 400;
     Scene current_scene;
+    shared_ptr<HittableList> lights = make_shared<HittableList>();
 
-    switch (2)
+    switch (6)
     {
     case 1:
         current_scene = RandomScene();
@@ -81,6 +115,9 @@ int main() {
         break;
     case 6:
         current_scene = CornellBoxScene();
+		lights->add(make_shared<XZRect>(213, 343, 227, 332, 554, shared_ptr<Material>()));
+		lights->add(make_shared<Sphere>(Point3(190, 90, 190), 90, shared_ptr<Material>()));
+
         aspect_ratio = 1.0;
         image_width = 600;
         break;
@@ -99,17 +136,17 @@ int main() {
 
     // Camera
 
-    Vector3D vup(0, 1, 0);
+    Vector3 vup(0, 1, 0);
     double dist_to_focus = 10.0;
     int image_height = static_cast<int>(image_width / aspect_ratio);
     Camera scene_camera(current_scene.lookfrom, current_scene.lookat, vup, current_scene.vfov, aspect_ratio, current_scene.aperture, dist_to_focus, 0.0, 1.0);
 
     // Render
     ofstream image_file = {};
-    ImageOut image_buffer = {};
     image_file.open("render_image.ppm", ios::binary);
     image_file.clear();
 
+    std::cout << "Image Width: " << image_width << "\nImage Height:" << image_height << "\n\n";
     image_file << "P3\n" << image_width << ' ' << image_height << "\n255\n";
     for (int j = image_height - 1; j >= 0; --j)
     {
@@ -124,13 +161,12 @@ int main() {
                 double u = (i + random_double()) / ((double)image_width - 1);
                 double v = (j + random_double()) / ((double)image_height - 1);
                 Ray r = scene_camera.get_ray(u, v);
-                //pixel_color += ray_color(r, world, max_depth);
-                pixel_color += ray_color(r, current_scene.background, current_scene.world, max_depth);
+                
+                pixel_color += ray_color(r, current_scene.background, current_scene.world, lights ,current_scene.max_depth);
             }
-            image_buffer.write_color(pixel_color, current_scene.samples_per_pixel);
+            write_color(pixel_color, current_scene.samples_per_pixel, image_file);
         }
     }
-    image_file << image_buffer.get_buffer_string();
     image_file.close();
     std::cerr << "\nDone.\n";
 }

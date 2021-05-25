@@ -35,3 +35,20 @@ bool HittableList::bounding_box(double time0, double time1, AABB& output_box) co
 
     return true;
 }
+
+double HittableList::pdf_value(const Point3& o, const Vector3& v) const
+{
+	auto weight = 1.0 / objects.size();
+	auto sum = 0.0;
+
+	for (const auto& object : objects)
+		sum += weight * object->pdf_value(o, v);
+
+	return sum;
+}
+
+Vector3 HittableList::random(const Vector3& o) const
+{
+	auto int_size = static_cast<int>(objects.size());
+	return objects[random_int(0, int_size - 1)]->random(o);
+}

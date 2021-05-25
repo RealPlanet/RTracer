@@ -12,7 +12,7 @@ bool XYRect::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
     rec.u = (x - x0) / (x1 - x0);
     rec.v = (y - y0) / (y1 - y0);
     rec.t = t;
-    Vector3D outward_normal = Vector3D(0, 0, 1);
+    Vector3 outward_normal = Vector3(0, 0, 1);
     rec.set_face_normal(r, outward_normal);
     rec.mat_ptr = mp;
     rec.point = r.at(t);
@@ -31,7 +31,7 @@ bool YZRect::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
     rec.u = (y - y0) / (y1 - y0);
     rec.v = (z - z0) / (z1 - z0);
     rec.t = t;
-    Vector3D outward_normal = Vector3D(1, 0, 0);
+    Vector3 outward_normal = Vector3(1, 0, 0);
     rec.set_face_normal(r, outward_normal);
     rec.mat_ptr = mp;
     rec.point = r.at(t);
@@ -50,7 +50,7 @@ bool XZRect::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
     rec.u = (x - x0) / (x1 - x0);
     rec.v = (z - z0) / (z1 - z0);
     rec.t = t;
-    Vector3D outward_normal = Vector3D(0, 1, 0);
+    Vector3 outward_normal = Vector3(0, 1, 0);
     rec.set_face_normal(r, outward_normal);
     rec.mat_ptr = mp;
     rec.point = r.at(t);

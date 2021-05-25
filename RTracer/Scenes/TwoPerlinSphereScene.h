@@ -8,8 +8,8 @@ public:
     {
         world = two_perlin_spheres();
         background = Color(0.70, 0.80, 1.00);
-        lookfrom = Point3D(13, 2, 3);
-        lookat = Point3D(0, 0, 0);
+        lookfrom = Point3(13, 2, 3);
+        lookat = Point3(0, 0, 0);
         vfov = 20.0;
         samples_per_pixel = 500;
     }
@@ -19,8 +19,8 @@ private:
         HittableList objects;
 
         auto pertext = make_shared<NoiseTexture>(4);
-        objects.add(make_shared<Sphere>(Point3D(0, -1000, 0), 1000, make_shared<Lambertian>(pertext)));
-        objects.add(make_shared<Sphere>(Point3D(0, 2, 0), 2, make_shared<Lambertian>(pertext)));
+        objects.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, make_shared<Lambertian>(pertext)));
+        objects.add(make_shared<Sphere>(Point3(0, 2, 0), 2, make_shared<Lambertian>(pertext)));
 
         return objects;
     }

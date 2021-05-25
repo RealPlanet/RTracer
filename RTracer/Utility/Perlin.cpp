@@ -2,10 +2,10 @@
 
 Perlin::Perlin()
 {
-    ranvec = new Vector3D[point_count];
+    ranvec = new Vector3[point_count];
     for (int i = 0; i < point_count; ++i)
     {
-        ranvec[i] = unit_vector(Vector3D::random(-1, 1));
+        ranvec[i] = unit_vector(Vector3::random(-1, 1));
     }
 
     perm_x = perlin_generate_perm();
@@ -13,7 +13,7 @@ Perlin::Perlin()
     perm_z = perlin_generate_perm();
 }
 
-double Perlin::noise(const Point3D& p) const {
+double Perlin::noise(const Point3& p) const {
     double u = p.x() - floor(p.x());
     double v = p.y() - floor(p.y());
     double w = p.z() - floor(p.z());
@@ -25,7 +25,7 @@ double Perlin::noise(const Point3D& p) const {
     int i = static_cast<int>(floor(p.x()));
     int j = static_cast<int>(floor(p.y()));
     int k = static_cast<int>(floor(p.z()));
-    Vector3D c[2][2][2];
+    Vector3 c[2][2][2];
 
     for (int di = 0; di < 2; di++)
     {
@@ -45,10 +45,10 @@ double Perlin::noise(const Point3D& p) const {
     return perlin_interp(c, u, v, w);
 }
 
-double Perlin::turb(const Point3D& p, int depth) const
+double Perlin::turb(const Point3& p, int depth) const
 {
     double accum = 0.0;
-    Point3D temp_p = p;
+    Point3 temp_p = p;
     double weight = 1.0;
 
     for (int i = 0; i < depth; i++)
@@ -107,7 +107,7 @@ double Perlin::trilinear_interp(double c[2][2][2], double u, double v, double w)
     return accum;
 }
 
-double Perlin::perlin_interp(Vector3D c[2][2][2], double u, double v, double w)
+double Perlin::perlin_interp(Vector3 c[2][2][2], double u, double v, double w)
 {
     auto uu = u * u * (3 - 2 * u);
     auto vv = v * v * (3 - 2 * v);
@@ -120,7 +120,7 @@ double Perlin::perlin_interp(Vector3D c[2][2][2], double u, double v, double w)
         {
             for (int k = 0; k < 2; k++)
             {
-                Vector3D weight_v(u - i, v - j, w - k);
+                Vector3 weight_v(u - i, v - j, w - k);
                 accum += (i * uu + (1 - i) * (1 - uu))
                     * (j * vv + (1 - j) * (1 - vv))
                     * (k * ww + (1 - k) * (1 - ww))

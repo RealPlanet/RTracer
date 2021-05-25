@@ -1,4 +1,5 @@
 ﻿#include "Sphere.h"
+#include <ONB.h>
 
 
 bool Sphere::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
@@ -17,7 +18,7 @@ bool Sphere::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
        b = 2 * n * (A - C)
        c = (A-C)^2 - r^2
     */
-    Vector3D oc_vec = r.origin() - center; //Vector that passes the ray origin and the sphere center
+    Vector3 oc_vec = r.origin() - center; //Vector that passes the ray origin and the sphere center
     double a = r.direction().length_squared(); // dot == squared lenght
     double half_b = dot(oc_vec, r.direction()); // b == 2h => simplifies the equation
     double c = oc_vec.length_squared() - radius * radius;
@@ -38,7 +39,7 @@ bool Sphere::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
 
     rec.t = root;
     rec.point = r.at(rec.t);
-    Vector3D outward_normal = (rec.point - center) / radius;
+    Vector3 outward_normal = (rec.point - center) / radius;
     rec.set_face_normal(r, outward_normal);
     get_sphere_uv(outward_normal, rec.u, rec.v);
     rec.mat_ptr = mat_ptr;
@@ -48,11 +49,11 @@ bool Sphere::hit(const Ray& r, double t_min, double t_max, HitInfo& rec) const
 
 bool Sphere::bounding_box(double time0, double time1, AABB& output_box) const
 {
-    output_box = AABB( center - Vector3D(radius, radius, radius), center + Vector3D(radius, radius, radius));
+    output_box = AABB( center - Vector3(radius, radius, radius), center + Vector3(radius, radius, radius));
     return true;
 }
 
-void Sphere::get_sphere_uv(const Point3D& p, double& u, double& v)
+void Sphere::get_sphere_uv(const Point3& p, double& u, double& v)
 {
     // p: a given point on the sphere of radius one, centered at the origin.
     // u: returned value [0,1] of angle around the Y axis from X=-1.
@@ -66,4 +67,25 @@ void Sphere::get_sphere_uv(const Point3D& p, double& u, double& v)
 
     u = phi / (2 * pi);
     v = theta / pi;
+}
+
+double Sphere::pdf_value(const Point3& o, const Vector3& v) const
+{
+	HitInfo rec;
+	if (!this->hit(Ray(o, v), 0.001, infinity, rec))
+		return 0;
+
+	auto cos_theta_max = sqrt(1 - radius * radius / (center - o).length_squared());
+	auto solid_angle = 2 * pi * (1 - cos_theta_max);
+
+	return  1 / solid_angle;
+}
+
+Vector3 Sphere::random(const Point3& o) const
+{
+    Vector3 direction = center - o;
+	auto distance_squared = direction.length_squared();
+	ONB uvw;
+	uvw.build_from_w(direction);
+	return uvw.local(random_to_sphere(radius, distance_squared));
 }

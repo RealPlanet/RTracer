@@ -15,7 +15,7 @@ public:
     virtual bool bounding_box(double time0, double time1, AABB& output_box) const override {
         // The bounding box must have non-zero width in each dimension, so pad the Z
         // dimension a small amount.
-        output_box = AABB(Point3D(x0, y0, k - 0.0001), Point3D(x1, y1, k + 0.0001));
+        output_box = AABB(Point3(x0, y0, k - 0.0001), Point3(x1, y1, k + 0.0001));
         return true;
     }
 
@@ -40,9 +40,29 @@ public:
     virtual bool bounding_box(double time0, double time1, AABB& output_box) const override {
         // The bounding box must have non-zero width in each dimension, so pad the Y
         // dimension a small amount.
-        output_box = AABB(Point3D(x0, k - 0.0001, z0), Point3D(x1, k + 0.0001, z1));
+        output_box = AABB(Point3(x0, k - 0.0001, z0), Point3(x1, k + 0.0001, z1));
         return true;
     }
+
+	virtual double pdf_value(const Point3& origin, const Vector3& v) const override
+    {
+        HitInfo rec;
+		if (!this->hit(Ray(origin, v), 0.001, infinity, rec))
+			return 0;
+
+		auto area = (x1 - x0) * (z1 - z0);
+		auto distance_squared = rec.t * rec.t * v.length_squared();
+		auto cosine = fabs(dot(v, rec.normal) / v.length());
+
+		return distance_squared / (cosine * area);
+	}
+
+	virtual Vector3 random(const Point3& origin) const override
+    {
+		auto random_point = Point3(random_double(x0, x1), k, random_double(z0, z1));
+		return random_point - origin;
+	}
+
     shared_ptr<Material> mp;
     double x0 = 0.0f;
     double x1 = 0.0f;
@@ -65,7 +85,7 @@ public:
     virtual bool bounding_box(double time0, double time1, AABB& output_box) const override {
         // The bounding box must have non-zero width in each dimension, so pad the X
         // dimension a small amount.
-        output_box = AABB(Point3D(k - 0.0001, y0, z0), Point3D(k + 0.0001, y1, z1));
+        output_box = AABB(Point3(k - 0.0001, y0, z0), Point3(k + 0.0001, y1, z1));
         return true;
     }
     shared_ptr<Material> mp;

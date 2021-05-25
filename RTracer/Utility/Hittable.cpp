@@ -7,8 +7,8 @@ RotateY::RotateY(shared_ptr<Hittable> p, double angle) : ptr{ p }
     cos_theta = cos(radians);
     hasbox = ptr->bounding_box(0, 1, bbox);
 
-    Point3D min(infinity, infinity, infinity);
-    Point3D max(-infinity, -infinity, -infinity);
+    Point3 min(infinity, infinity, infinity);
+    Point3 max(-infinity, -infinity, -infinity);
 
     for (int i = 0; i < 2; i++)
     {
@@ -23,7 +23,7 @@ RotateY::RotateY(shared_ptr<Hittable> p, double angle) : ptr{ p }
                 auto newx = cos_theta * x + sin_theta * z;
                 auto newz = -sin_theta * x + cos_theta * z;
 
-                Vector3D tester(newx, y, newz);
+                Vector3 tester(newx, y, newz);
 
                 for (int c = 0; c < 3; c++) {
                     min[c] = fmin(min[c], tester[c]);
