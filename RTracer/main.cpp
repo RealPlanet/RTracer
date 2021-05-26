@@ -3,16 +3,16 @@
 #include <fstream>
 #include <sstream>
 
-#include "VMath.h"
-#include "Box.h"
-#include "BVHNode.h"
+#include "Utility/VMath.h"
+#include "Shapes/Box.h"
+#include "BVHNode/BVHNode.h"
 #include "Camera.h"
-#include "ConstantMedium.h"
-#include "HittableList.h"
-#include "Material.h"
-#include "MovingSphere.h"
-#include "Sphere.h"
-#include "Texture.h"
+#include "Hittable/ConstantMedium.h"
+#include "Hittable/HittableList.h"
+#include "Materials/Material.h"
+#include "Shapes/MovingSphere.h"
+#include "Shapes/Sphere.h"
+#include "Textures/Texture.h"
 #include "Ray.h"
 #include "Scenes/Scene.h"
 #include "Scenes/RandomScene.h"
@@ -23,9 +23,9 @@
 #include "Scenes/CornellBoxScene.h"
 #include "Scenes/SimpleLightScene.h"
 #include "Scenes/EarthScene.h"
-#include "CosinePDF.h"
-#include <HittablePDF.h>
-#include <MixturePDF.h>
+#include "PDF/CosinePDF.h"
+#include <PDF/HittablePDF.h>
+#include <PDF/MixturePDF.h>
 
 using namespace std;
 

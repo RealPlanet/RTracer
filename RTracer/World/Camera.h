@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "VMath.h"
+#include "Utility/VMath.h"
 #include "Ray.h"
 
 class Camera
