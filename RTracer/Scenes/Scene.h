@@ -16,10 +16,13 @@ public:
 	double vfov = 40.0;
 	double aperture = 0.0;
 	HittableList world = HittableList();
+	shared_ptr<HittableList> lights = make_shared<HittableList>();
+
 	int samples_per_pixel = 400;
 	int max_depth = 10;
 	Scene()
 	{
+		
 	}
 };
 

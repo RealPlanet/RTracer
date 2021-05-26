@@ -29,39 +29,39 @@
 
 using namespace std;
 
-Color ray_color( const Ray& r, const Color& background, const Hittable& world, shared_ptr<HittableList>& lights, int depth )
+
+Color ray_color(const Ray& r, const Color& background, const Hittable& world, shared_ptr<Hittable> lights,int depth)
 {
-    HitInfo rec;
-    if (depth <= 0)
-    {
-        return Color(0, 0, 0);
-    }
+	HitInfo rec;
+
+	// If we've exceeded the ray bounce limit, no more light is gathered.
+	if (depth <= 0)
+		return Color(0, 0, 0);
+
 	// If the ray hits nothing, return the background color.
 	if (!world.hit(r, 0.001, infinity, rec))
-	{
 		return background;
-	}
 
 	ScatterInfo srec;
-	Color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.point);
+    Color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.point);
+
 	if (!rec.mat_ptr->scatter(r, rec, srec))
 		return emitted;
 
-	if (srec.is_specular)
-    {
-		return srec.attenuation	* ray_color(srec.specular_ray, background, world, lights, depth - 1);
+	if (srec.is_specular) {
+		return srec.attenuation
+			* ray_color(srec.specular_ray, background, world, lights, depth - 1);
 	}
 
 	auto light_ptr = make_shared<HittablePDF>(lights, rec.point);
 	MixturePDF p(light_ptr, srec.pdf_ptr);
-
 	Ray scattered = Ray(rec.point, p.generate(), r.time());
 	auto pdf_val = p.value(scattered.direction());
 
 	return emitted
 		+ srec.attenuation * rec.mat_ptr->scattering_pdf(r, rec, scattered)
-		* ray_color(scattered, background, world, lights, depth - 1) / pdf_val;
-
+		* ray_color(scattered, background, world, lights, depth - 1)
+		/ pdf_val;
 }
 
 void write_color(Color pixel_color, int samples_per_pixel, std::ostream& out)
@@ -94,7 +94,7 @@ int main() {
     double aspect_ratio = 16.0 / 9.0;
     int image_width = 400;
     Scene current_scene;
-    shared_ptr<HittableList> lights = make_shared<HittableList>();
+	shared_ptr<HittableList> lights = make_shared<HittableList>();
 
     switch (6)
     {
@@ -115,8 +115,6 @@ int main() {
         break;
     case 6:
         current_scene = CornellBoxScene();
-		lights->add(make_shared<XZRect>(213, 343, 227, 332, 554, shared_ptr<Material>()));
-		lights->add(make_shared<Sphere>(Point3(190, 90, 190), 90, shared_ptr<Material>()));
 
         aspect_ratio = 1.0;
         image_width = 600;
@@ -126,7 +124,6 @@ int main() {
         aspect_ratio = 1.0;
         image_width = 1024;  
         break;
-    default:
     case 8:
         current_scene = ClusterScene();  
         aspect_ratio = 1.0;
@@ -162,7 +159,7 @@ int main() {
                 double v = (j + random_double()) / ((double)image_height - 1);
                 Ray r = scene_camera.get_ray(u, v);
                 
-                pixel_color += ray_color(r, current_scene.background, current_scene.world, lights ,current_scene.max_depth);
+                pixel_color += ray_color(r, current_scene.background, current_scene.world, current_scene.lights ,current_scene.max_depth);
             }
             write_color(pixel_color, current_scene.samples_per_pixel, image_file);
         }
